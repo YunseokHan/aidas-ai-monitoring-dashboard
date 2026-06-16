@@ -1,0 +1,38 @@
+name: Deploy dashboard to GitHub Pages
+
+# Deploy on every push to main (the central server's publish.py force-pushes the
+# snapshot here). Using a custom Actions workflow means the 10-builds/hour soft
+# limit of branch-based Pages does NOT apply, so we can refresh more often.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# one deployment at a time; let an in-progress deploy finish (don't cancel)
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "."
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
