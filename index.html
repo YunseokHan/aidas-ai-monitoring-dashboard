@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AIDAS AI 모니터링</title>
+  <link rel="stylesheet" href="./style.css?v=20260723b" />
+  <script src="./vendor/chart.umd.min.js" defer></script>
+  <script src="./app.js?v=20260723b" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">◆</span>
+      <div>
+        <h1>AIDAS AI 모니터링</h1>
+        <div class="sub" id="hostline">Claude Code · Codex 토큰 사용량 추적</div>
+      </div>
+    </div>
+    <div class="topctl">
+      <label class="metricsel">
+        지표
+        <select id="metricSelect">
+          <option value="total">total (전체)</option>
+          <option value="billable">billable (입력+출력+캐시생성)</option>
+          <option value="io">io (입력+출력)</option>
+          <option value="output">output</option>
+          <option value="input">input</option>
+          <option value="cache_creation">cache_creation</option>
+          <option value="cache_read">cache_read</option>
+        </select>
+      </label>
+      <label class="auto">
+        <input type="checkbox" id="autoRefresh" checked /> 자동 새로고침
+      </label>
+      <button id="refreshBtn" class="btn">새로고침</button>
+      <span class="updated" id="updated">—</span>
+    </div>
+  </header>
+
+  <div id="breachBanner" class="banner hidden"></div>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="overview">개요</button>
+    <button class="tab" data-tab="live">라이브 세션 <span id="liveBadge" class="badge">0</span></button>
+    <button class="tab" data-tab="sessions">세션 기록</button>
+    <button class="tab" data-tab="charts">차트</button>
+    <button class="tab" data-tab="alerts">알림</button>
+    <button class="tab" data-tab="settings">설정</button>
+  </nav>
+
+  <main>
+    <!-- OVERVIEW -->
+    <section id="tab-overview" class="panel">
+      <div class="totalsrow" id="totalsRow"></div>
+      <h2>계정별 사용량</h2>
+      <div id="accounts" class="cards"></div>
+    </section>
+
+    <!-- LIVE -->
+    <section id="tab-live" class="panel hidden">
+      <h2>지금 떠 있는 세션</h2>
+      <p class="hint">프로세스(pid) 생존으로 판정합니다. heartbeat 시간은 활동 표시용입니다.</p>
+      <div id="liveSessions" class="tablewrap"></div>
+    </section>
+
+    <!-- SESSIONS -->
+    <section id="tab-sessions" class="panel hidden">
+      <h2>세션별 토큰 사용량</h2>
+      <div class="filterbar">
+        <input type="text" id="sessionFilter" placeholder="프로젝트/세션ID/계정 필터…" />
+      </div>
+      <div id="sessionsTable" class="tablewrap"></div>
+    </section>
+
+    <!-- CHARTS -->
+    <section id="tab-charts" class="panel hidden">
+      <div class="filterbar">
+        <label>기간
+          <select id="chartWindow">
+            <option value="1h">최근 1시간</option>
+            <option value="5h">최근 5시간</option>
+            <option value="1d" selected>최근 24시간</option>
+            <option value="7d">최근 7일</option>
+          </select>
+        </label>
+      </div>
+      <div class="chartbox"><canvas id="usageChart"></canvas></div>
+    </section>
+
+    <!-- ALERTS -->
+    <section id="tab-alerts" class="panel hidden">
+      <div class="filterbar">
+        <span id="notifierInfo" class="hint"></span>
+      </div>
+      <div id="alertsTable" class="tablewrap"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="tab-settings" class="panel hidden">
+      <h2>추적 대상 계정</h2>
+      <div id="trackingInfo" class="emailbox"></div>
+
+      <h2>알림 기준</h2>
+      <div id="alertInfo" class="emailbox"></div>
+
+      <h2>이메일 알림</h2>
+      <div id="emailStatus" class="emailbox"></div>
+
+      <h2>수집 상태</h2>
+      <div id="collectInfo" class="emailbox"></div>
+    </section>
+  </main>
+
+  <footer class="foot">AIDAS AI Monitoring · GitHub Pages 정적 스냅샷 (읽기 전용) · 데이터는 중앙 서버가 주기적으로 publish</footer>
+</body>
+</html>

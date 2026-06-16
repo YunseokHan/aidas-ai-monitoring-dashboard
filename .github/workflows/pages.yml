@@ -1,0 +1,60 @@
+name: Deploy dashboard to GitHub Pages
+
+# Deploy on every push to main (the central server's publish.py force-pushes the
+# snapshot here). Using a custom Actions workflow means the 10-builds/hour soft
+# limit of branch-based Pages does NOT apply, so we can refresh more often.
+on:
+  push:
+    branches: [main]
+    # data-only pushes (dashboard.json) are served via raw.githubusercontent and
+    # do NOT need a Pages deploy — skip them so frequent data updates don't
+    # trigger (and get throttled by) Pages deploys. Shell changes still deploy.
+    paths-ignore:
+      - 'data/**'
+  # The browser normally uses an immutable Raw commit URL, but refresh the
+  # Pages artifact periodically so its offline/API-failure fallback never
+  # remains stale for days after data-only publishes.
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# one deployment at a time; let an in-progress deploy finish (don't cancel)
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "."
+      # GitHub Pages' backend throttles frequent deploys with
+      # "Deployment failed, try again later." Retry once (after a short wait) so
+      # a transient throttle self-heals within the SAME run -> the run concludes
+      # as success and no failure email is sent.
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - name: Wait before retry (Pages throttled)
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 30
+      - name: Retry deploy to GitHub Pages
+        id: deployment_retry
+        if: steps.deployment.outcome == 'failure'
+        uses: actions/deploy-pages@v4

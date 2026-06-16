@@ -1,0 +1,10 @@
+# secrets & local settings — NEVER commit
+.env
+
+# keep data/dashboard.json committed (it's what GitHub Pages serves)
+__pycache__/
+*.pyc
+*.tmp
+data/publish.log
+data/*.tmp
+.DS_Store
